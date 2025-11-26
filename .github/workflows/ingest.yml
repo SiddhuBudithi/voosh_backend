@@ -23,11 +23,11 @@ jobs:
 
       - name: Install dependencies
         run: npm install
-        working-directory: backend
+        working-directory: voosh_backend
 
       - name: Run ingestion script
         run: npm run ingest
-        working-directory: backend
+        working-directory: voosh_backend
         env:
           QDRANT_URL: ${{ secrets.QDRANT_URL }}
           QDRANT_API_KEY: ${{ secrets.QDRANT_API_KEY }}
