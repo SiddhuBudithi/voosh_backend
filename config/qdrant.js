@@ -5,7 +5,9 @@ const QDRANT_API_KEY = process.env.QDRANT_API_KEY || undefined;
 
 const qdrantClient = new QdrantClient({
   url: QDRANT_HOST,
-  apiKey: QDRANT_API_KEY || undefined
+  apiKey: QDRANT_API_KEY || undefined,
+  timeout: 30_000,
+  checkCompatibility: false,
 });
 
 export default qdrantClient;
