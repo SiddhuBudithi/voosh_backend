@@ -1,0 +1,42 @@
+name: Run Qdrant Ingestion
+
+on:
+  # Runs ingestion every 6 hours
+  schedule:
+    - cron: "0 */6 * * *"
+
+  # Also allow manual run from the GitHub UI
+  workflow_dispatch:
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install
+        working-directory: backend
+
+      - name: Run ingestion script
+        run: npm run ingest
+        working-directory: backend
+        env:
+          QDRANT_URL: ${{ secrets.QDRANT_URL }}
+          QDRANT_API_KEY: ${{ secrets.QDRANT_API_KEY }}
+
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_MODEL: ${{ secrets.GEMINI_MODEL }}
+
+          JINA_API_KEY: ${{ secrets.JINA_API_KEY }}
+          JINA_EMBEDDINGS_URL: ${{ secrets.JINA_EMBEDDINGS_URL }}
+          EMBEDDING_PROVIDER: ${{ secrets.EMBEDDING_PROVIDER }}
+
+          REDIS_URL: ${{ secrets.REDIS_URL }}
