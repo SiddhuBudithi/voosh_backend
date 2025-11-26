@@ -1,11 +1,11 @@
 import 'dotenv/config';
 import { ensureQdrantCollection, ingestRSS, ingestLocalPdf, indexDocuments } from '../services/ingest.service.js';
 
-async function main() {
+export async function runIngestion() {
   try {
     await ensureQdrantCollection();
 
-    const RSS_URL = process.env.INGEST_RSS || 'https://www.reuters.com/tools/rss';
+    const RSS_URL = process.env.INGEST_RSS || 'http://feeds.bbci.co.uk/news/world/rss.xml';
     console.log('Fetching RSS from', RSS_URL);
     const rssDocs = await ingestRSS(RSS_URL, 50);
     console.log('RSS docs fetched:', rssDocs.length);
@@ -26,8 +26,6 @@ async function main() {
     }
   } catch (err) {
     console.error('Ingest script error', err);
-    process.exit(1);
+    throw err; // don't exit Cloud Run container
   }
 }
-
-main();

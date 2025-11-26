@@ -5,8 +5,9 @@ import bodyParser from "body-parser";
 import sessionRoutes from "./routes/session.routes.js";
 import chatRoutes from "./routes/chat.routes.js";
 import { ensureQdrantCollection } from "./services/ingest.service.js";
+import { runIngestion } from "./scripts/ingest.js";
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 8080;
 const app = express();
 
 app.use(bodyParser.json());
@@ -28,18 +29,32 @@ app.use("/api/chat", chatRoutes);
 // health
 app.get("/health", (req, res) => res.json({ ok: true }));
 
-// start server and ensure Qdrant collection exists
-app.listen(PORT, async () => {
-  console.log(`Server listening on port ${PORT}`);
+app.post("/api/admin/ingest", async (req, res) => {
   try {
-    await ensureQdrantCollection();
-    console.log("Qdrant collection checked/created.");
+    const secret = req.headers["x-cron-key"];
+
+    if (!secret || secret !== process.env.INGEST_KEY) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    await runIngestion();
+    res.json({ ok: true });
   } catch (err) {
-    console.warn(
-      "Qdrant collection check failed (you can still proceed):",
-      err.message || err
-    );
+    res.status(500).json({ error: err.message });
   }
 });
+
+// start server and ensure Qdrant collection exists
+app.listen(PORT, () => {
+  console.log(`Server listening on port ${PORT}`);
+});
+
+// Non-blocking background task
+ensureQdrantCollection()
+  .then(() => console.log("Qdrant collection checked/created."))
+  .catch(err =>
+    console.warn("Qdrant collection check failed:", err.message || err)
+  );
+
 
 export default app;
